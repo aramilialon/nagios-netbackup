@@ -48,23 +48,27 @@ sub check_diskpools{
 		$critical = $temp; 
 	}
 	eval {
-		$output = system("nbdevquery -listdv -stype DataDomain -dp $diskpool -U");
+		$output = `nbdevquery -listdv -stype DataDomain -dp $diskpool -U`;
 	};
 	if ($@) {
 		print "UNKNOWN: Something went wrong - $@\n";
 		exit(3);
 	}
-	foreach my $line (<$output>){
-		if ($line =~ /Use%/){
+	my $percetuale;
+	foreach my $line ($output){
+		if ($line =~ /Use%/ && !$percetuale){
 			$line =~ /[^\d]*: ([\d]*)\n/;
+			$percetuale = $1;
 			if ($1 > $critical){
-				print "CRITICAL: Diskpool $diskpool has ".(100-%$1)." free space\n";
+				print "CRITICAL: Diskpool $diskpool has ".($percetuale)."% used space\n";
 				exit(2);
 			} elsif ($1 > $warning) {
-				print "WARNING: Diskpool $diskpool has ".(100-%$1)." free space\n";
-			}
+				print "WARNING: Diskpool $diskpool has ".($percetuale)."% used space\n";
+				exit(1);
+			} 
 		}
 	}
+	print "OK: Diskpool $diskpool has ".($percetuale)."% used space\n";
 	exit(0);
 }
 
