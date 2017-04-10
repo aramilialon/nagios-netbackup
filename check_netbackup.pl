@@ -27,8 +27,9 @@ GetOptions (
 	"stype=s" => \my $stype,					# for diskpools
 	"diskpool=s" => \my $diskpool,				# for diskpools
 	"tapelibrary=i" => \my $tapelibrary,		# for tapelibrary
-	"policyname=s" => \my $policyname,				# for backupcheck
+	"policyname=s" => \my $policyname,			# for backupcheck
 	"backupnumber=i" => \my $backupnumber,		# for backupcheck
+	'help|?' =>			sub {exec perldoc => -F => $0 or die "Cannot execute perldoc: $!\n";}
 ) or Error("$0: Error in command line arguments\n");
 
 sub Error {
@@ -44,13 +45,9 @@ sub check_diskpools{
 	Error('Option --warning required') unless $warning;
 	Error('Option --critical required') unless $critical;
 	Error('Option --diskpool required') unless $diskpool;
-	if ($warning < $critical){
-		my $temp = $warning;
-		$warning = $critical;
-		$critical = $temp; 
-	}
+	Error('Option --stype required') unless $stype;
 	eval {
-		$output = `nbdevquery -listdv -stype DataDomain -dp $diskpool -U`;
+		$output = `nbdevquery -listdv -stype $stype -dp $diskpool -U`;
 	};
 	if ($@) {
 		print "UNKNOWN: Something went wrong - $@\n";
@@ -79,11 +76,6 @@ sub check_drive_status{
 	Error('Option --tapelibrary required') unless ($tapelibrary || $tapelibrary eq "0");
 	Error('Option --warning required') unless $warning;
 	Error('Option --critical required') unless $critical;
-	if ($warning < $critical){
-		my $temp = $warning;
-		$warning = $critical;
-		$critical = $temp; 
-	}
 	eval {
 		$output = `vmquery -rn $tapelibrary -bx | findstr -i scratch | find /v /c \"\"`;
 	};
@@ -136,7 +128,7 @@ sub check_down_drive {
 		exit(3);
 	}
 	foreach my $line ($output){
-		if ($line =~ /down/i){
+		if ($line =~ /down/i || $line =~ /avr/i){
 			print "CRITICAL: There is a down drive\n";
 			exit(2);
 		}
@@ -159,3 +151,50 @@ if ($operation eq "diskpools"){
 	print "UNKNOWN: Operation not recognized\n";
 	exit(3);
 }
+
+__END__
+
+=head1 NAME
+
+check_netbackup - Check Netbackup
+
+=head1 SYNOPSIS
+
+check_meru_ap_status.pl --operation OPERATION [--warning WARNING] [--critical CRITICAL] [--diskpool DISKPOOL] [--stype STYPE] [--tapelibrary #] [--policyname NAME_POLICY] [--backupnumber #]
+
+=head1 DESCRIPTION
+
+Checks the status of all the APs connected to a specific controller
+
+=head1 OPTIONS
+
+=over 4
+
+=item --hostname FQDN
+
+The Hostname of the controller to monitor
+
+=item --perf
+
+Flag for performance data output
+
+=item -help
+
+=item -?
+
+to see this Documentation
+
+=back
+
+=head1 EXIT CODE
+
+3 on Unknown Error
+2 if there are some offline APs
+1 if there are some disabled APs or any problem occured
+0 if everything is ok
+
+=head1 AUTHORS
+
+ Giorgio Maggiolo <giorgio at maggiolo dot net>
+
+
