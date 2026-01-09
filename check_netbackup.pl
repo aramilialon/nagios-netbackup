@@ -160,11 +160,11 @@ check_netbackup - Check Netbackup
 
 =head1 SYNOPSIS
 
-check_meru_ap_status.pl --operation OPERATION [--warning WARNING] [--critical CRITICAL] [--diskpool DISKPOOL] [--stype STYPE] [--tapelibrary #] [--policyname NAME_POLICY] [--backupnumber #]
+check_netbackup.pl --operation OPERATION [--warning WARNING] [--critical CRITICAL] [--diskpool DISKPOOL] [--stype STYPE] [--tapelibrary #] [--policyname NAME_POLICY] [--backupnumber #]
 
 =head1 DESCRIPTION
 
-Checks the status of all the APs connected to a specific controller
+Checks the status of a NetBackup installation
 
 =head1 OPTIONS
 
